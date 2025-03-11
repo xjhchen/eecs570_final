@@ -38,6 +38,7 @@ IMPORTANT: If you modify this file, it's likely that the Learning gem5 book
 
 # import the m5 (gem5) library created when gem5 is built
 import m5
+import inspect
 
 # import all of the SimObjects
 from m5.objects import *
@@ -63,7 +64,7 @@ system.mem_mode = "timing"  # Use timing accesses
 system.mem_ranges = [AddrRange("512MiB")]  # Create an address range
 
 # Create a pair of simple CPUs
-system.cpu = [X86TimingSimpleCPU() for i in range(2)]
+system.cpu = [X86TimingSimpleCPU() for i in range(8)]
 
 # Create a DDR3 memory controller and connect it to the membus
 system.mem_ctrl = MemCtrl()

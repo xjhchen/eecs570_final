@@ -85,6 +85,8 @@ GoodbyeObject::fillBuffer()
         // Copy the character into the buffer
         buffer[bufferUsed] = *it;
     }
+    DPRINTF(HelloExample, "BufferUsed = %d, buffersize = %d, bytes_copied = %d, buffer = %s\n",
+        bufferUsed, bufferSize, bytes_copied, buffer);
 
     if (bufferUsed < bufferSize - 1) {
         // Wait for the next copy for as long as it would have taken

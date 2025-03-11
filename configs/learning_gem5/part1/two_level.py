@@ -52,6 +52,20 @@ from caches import *
 # import the SimpleOpts module
 from common import SimpleOpts
 
+import argparse
+
+parser = argparse.ArgumentParser(description='A simple system with 2-level cache.')
+parser.add_argument("binary", default="", nargs="?", type=str,
+                    help="Path to the binary to execute.")
+parser.add_argument("--l1i_size",
+                    help=f"L1 instruction cache size. Default: 16kB.")
+parser.add_argument("--l1d_size",
+                    help="L1 data cache size. Default: Default: 64kB.")
+parser.add_argument("--l2_size",
+                    help="L2 cache size. Default: 256kB.")
+
+options = parser.parse_args()
+
 # Default to running 'hello', use the compiled ISA to find the binary
 # grab the specific path to the binary
 thispath = os.path.dirname(os.path.realpath(__file__))
@@ -122,7 +136,7 @@ system.mem_ctrl.dram = DDR3_1600_8x8()
 system.mem_ctrl.dram.range = system.mem_ranges[0]
 system.mem_ctrl.port = system.membus.mem_side_ports
 
-system.workload = SEWorkload.init_compatible(args.binary)
+system.workload = SEWorkload.init_compatible(options.binary)
 
 # Create a process for a simple "Hello World" application
 process = Process()

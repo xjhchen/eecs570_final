@@ -272,7 +272,7 @@ void SimpleCache::sendResponse(PacketPtr pkt)
 void
 SimpleCache::handleFunctional(PacketPtr pkt)
 {
-    if (accessFunctional(pkt)) {
+    if (accessFunctional(pkt)) { // true : cache hit false : cache hit
         pkt->makeResponse();
     } else {
         memPort.sendFunctional(pkt);

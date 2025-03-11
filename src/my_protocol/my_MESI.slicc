@@ -1,0 +1,4 @@
+protocol "my_MESI";
+include "my_MESI-msg.sm";
+include "my_MESI-cache.sm";
+include "my_MESI-dir.sm";

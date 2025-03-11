@@ -44,7 +44,7 @@
  * See Learning gem5 Part 3: Ruby for more details.
  */
 
-machine(MachineType:Directory, "Directory protocol")
+machine(MachineType:Directory, "my_MESI Directory protocol")
     :
       // This "DirectoryMemory" is a little weird. It is initially allocated
       // so that it *can* cover all of memory (i.e., there are pointers for
@@ -92,6 +92,7 @@ machine(MachineType:Directory, "Directory protocol")
         I, AccessPermission:Read_Write,  desc="Invalid in the caches.";
         S, AccessPermission:Read_Only,   desc="At least one cache has the blk";
         M, AccessPermission:Invalid,     desc="A cache has the block in M";
+        E, AccessPermission:Read_Only,   desc="A cache has the block in E";
 
         // Transient states
         S_D, AccessPermission:Busy,      desc="Moving to S, but need data";
@@ -99,6 +100,7 @@ machine(MachineType:Directory, "Directory protocol")
         // Waiting for data from memory
         S_m, AccessPermission:Read_Write, desc="In S waiting for mem";
         M_m, AccessPermission:Read_Write, desc="Moving to M waiting for mem";
+        E_m, AccessPermission:Read_Write, desc="Moving to E waiting for mem";
 
         // Waiting for write-ack from memory
         MI_m, AccessPermission:Busy,       desc="Moving to I waiting for ack";
@@ -115,6 +117,8 @@ machine(MachineType:Directory, "Directory protocol")
         PutSLast,     desc="PutS and the block has no other sharers";
         PutMOwner,    desc="Dirty data writeback from the owner";
         PutMNonOwner, desc="Dirty data writeback from non-owner";
+        PutEOwner,    desc="E writeback from the owner";
+        PutENonOwner, desc="E writeback from non-owner";
 
         // Cache responses
         Data,         desc="Response to fwd request with data";
@@ -265,10 +269,19 @@ machine(MachineType:Directory, "Directory protocol")
                     if (entry.Owner.isElement(in_msg.Requestor)) {
                         trigger(Event:PutMOwner, in_msg.addr);
                     } else {
-                        
+                        error("PutM from non-owner");
                         trigger(Event:PutMNonOwner, in_msg.addr);
                     }
-                } else {
+                } else if(in_msg.Type == CoherenceRequestType:PutE) {
+                    assert(is_valid(entry));
+                    if (entry.Owner.isElement(in_msg.Requestor)) {
+                        trigger(Event:PutEOwner, in_msg.addr);
+                    } else {
+                        error("PutE from non-owner");
+                        trigger(Event:PutENonOwner, in_msg.addr);
+                    }
+                }
+                else {
                     error("Unexpected message type.");
                 }
             }
@@ -461,14 +474,20 @@ machine(MachineType:Directory, "Directory protocol")
     /*************************************************************************/
     // transitions
 
-    transition({I, S}, GetS, S_m) {
-        sendMemRead; // directory is not responsible for storing data
+    transition(S, GetS, S_m) {
+        sendMemRead;
         addReqToSharers;
         popRequestQueue;
     }
 
     transition(I, {PutSNotLast, PutSLast, PutMNonOwner}) {
         sendPutAck;
+        popRequestQueue;
+    }
+
+    transition(I, GetS, E_m) {
+        sendMemRead;
+        setOwner;
         popRequestQueue;
     }
 
@@ -514,6 +533,38 @@ machine(MachineType:Directory, "Directory protocol")
         addReqToSharers;
         addOwnerToSharers;
         clearOwner;
+        popRequestQueue;
+    }
+
+    transition(E, GetS, S_D) {
+        sendFwdGetS;
+        addReqToSharers;
+        addOwnerToSharers;
+        clearOwner;
+        popRequestQueue;
+    }
+
+    transition(E, GetM, M) {
+        sendFwdGetM;
+        setOwner;
+        popRequestQueue;
+    }
+
+    transition(E, {PutSLast, PutSNotLast, PutMNonOwner, PutENonOwner}) {
+        sendPutAck;
+        popRequestQueue;
+    }
+
+    transition(E, PutMOwner, MI_m) {
+        sendDataToMem;
+        clearOwner;
+        sendPutAck;
+        popRequestQueue;
+    }
+
+    transition(E, PutEOwner, I) {
+        clearOwner;
+        sendPutAck;
         popRequestQueue;
     }
 
@@ -565,4 +616,8 @@ machine(MachineType:Directory, "Directory protocol")
         stall;
     }
 
+    transition(E_m, MemData, E) {
+        sendDataToReq; // use original senddatatoreq should be fine 
+        popMemQueue;
+    }
 }

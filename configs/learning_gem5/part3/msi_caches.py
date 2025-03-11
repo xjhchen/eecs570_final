@@ -111,7 +111,7 @@ class MyCacheSystem(RubySystem):
             self.sequencers[i].connectCpuPorts(cpu)
 
 
-class L1Cache(MSI_L1Cache_Controller):
+class L1Cache(my_MESI_L1Cache_Controller):
 
     _version = 0
 
@@ -153,7 +153,7 @@ class L1Cache(MSI_L1Cache_Controller):
 
         As this is an X86 simulation we return True.
         """
-        return True
+        return False
 
     def connectQueues(self, ruby_system):
         """Connect all of the queues for this controller."""
@@ -177,7 +177,7 @@ class L1Cache(MSI_L1Cache_Controller):
         self.responseFromDirOrSibling.in_port = ruby_system.network.out_port
 
 
-class DirController(MSI_Directory_Controller):
+class DirController(my_MESI_Directory_Controller):
 
     _version = 0
 

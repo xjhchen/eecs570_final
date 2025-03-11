@@ -48,6 +48,7 @@ menu "Ruby"
 
         rsource "protocol/Kconfig"
         rsource "../../learning_gem5/part3/Kconfig"
+        rsource "../../my_protocol/Kconfig"
 
         endmenu
 

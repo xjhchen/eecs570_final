@@ -30,6 +30,6 @@
 
 int main(int argc, char* argv[])
 {
-    printf("Hello world!\n");
+    printf("Hello world I'm CJH!\n");
     return 0;
 }
