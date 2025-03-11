@@ -55,7 +55,7 @@ system.mem_ranges = [AddrRange("512MiB")]  # Create an address range
 
 # Create the tester
 system.tester = RubyTester(
-    checks_to_complete=100, wakeup_frequency=10, num_cpus=2
+    checks_to_complete=100, wakeup_frequency=10, num_cpus=3
 )
 
 # Create a simple memory controller and connect it to the membus
